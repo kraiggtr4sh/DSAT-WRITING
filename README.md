@@ -1,11 +1,11 @@
 # DSAT Writing Practice (Python Version)
 
-AI-powered DSAT Writing section drill tool. This version uses a **Python (FastAPI)** backend with **SQLite** for robust data persistence and **HTMX** for a smooth, JavaScript-free frontend experience.
+DSAT Writing section drill tool. This version uses a **Python (FastAPI)** backend with **SQLite** for robust data persistence and **HTMX** for a smooth, JavaScript-free frontend experience.
 
 ## Features
 
 - **6 grammar topics** — Punctuation, Transitions, Subject-Verb Agreement, Modifiers, Parallel Structure, Sentence Boundaries.
-- **AI-generated questions** — Realistic SAT-style passages generated via Gemini 2.0 Flash.
+- **Generated questions** — Realistic SAT-style passages.
 - **Robust Persistence** — Your stats, streaks, and mistake history are saved in a local SQLite database (`database.db`).
 - **No-JS Frontend** — Uses HTMX for dynamic updates, keeping the frontend logic on the server.
 - **Modern UI** — Preserves the polished Lora/DM Sans aesthetic of the original.
