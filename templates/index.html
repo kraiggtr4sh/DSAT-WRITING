@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DSAT Writing Practice (Python)</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body hx-boost="true">
+
+    <!-- ── Main App ── -->
+    <div id="appScreen" class="screen">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+                    <rect width="36" height="36" rx="10" fill="#1a1a2e"/>
+                    <path d="M10 26 L18 10 L26 26" stroke="#e8b84b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="13" y1="21" x2="23" y2="21" stroke="#e8b84b" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <span class="sidebar-brand">DSAT Writing</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="api-key-box">
+                    <label for="apiKeyInput">Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" name="api_key" placeholder="Paste key here..." required />
+                </div>
+                <div class="api-key-box" style="margin-top: -10px;">
+                    <label for="modelSelect">AI Model</label>
+                    <select id="modelSelect" name="model_name" style="
+                        width: 100%;
+                        padding: 8px 10px;
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,255,255,0.1);
+                        border-radius: var(--radius-sm);
+                        color: #fff;
+                        font-family: var(--font-ui);
+                        font-size: 12px;
+                        outline: none;
+                        cursor: pointer;
+                    ">
+                        <option value="models/gemini-2.5-flash">Gemini 2.5 Flash (Newest)</option>
+                        <option value="models/gemini-2.5-pro">Gemini 2.5 Pro</option>
+                        <option value="models/gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="models/gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                        <option value="models/gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                    </select>
+                </div>
+                <button class="nav-item active" data-view="practice" onclick="switchView('practice')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    Practice
+                </button>
+                <button class="nav-item" data-view="review" 
+                        onclick="switchView('review')"
+                        hx-get="/review" hx-target="#reviewList">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                    Review Mistakes
+                    <span class="badge" id="reviewBadge" {% if stats.total - stats.correct == 0 %}hidden{% endif %}>
+                        {{ stats.total - stats.correct }}
+                    </span>
+                </button>
+                <button class="nav-item" data-view="stats" 
+                        onclick="switchView('stats')"
+                        hx-get="/stats" hx-target="#statsView">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Stats
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p style="color: rgba(255,255,255,0.3); font-size: 10px; padding: 0 12px;">Python + HTMX Backend</p>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+
+            <!-- ── Practice View ── -->
+            <div id="view-practice" class="view active">
+                <header class="view-header">
+                    <div>
+                        <h2 class="view-title">Practice</h2>
+                        <p class="view-sub">Choose a topic and generate a question</p>
+                    </div>
+                    <div class="streak-pill" id="streakPill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <span id="streakCount">{{ stats.streak }}</span> streak
+                    </div>
+                </header>
+
+                <!-- Stats bar -->
+                <div class="stats-bar">
+                    <div class="stat-pill">
+                        <span class="stat-val" id="statCorrect">{{ stats.correct }}</span>
+                        <span class="stat-label">correct</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="stat-val" id="statTotal">{{ stats.total }}</span>
+                        <span class="stat-label">answered</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="stat-val" id="statAccuracy">
+                            {% if stats.total > 0 %}{{ (stats.correct / stats.total * 100) | round | int }}%{% else %}—{% endif %}
+                        </span>
+                        <span class="stat-label">accuracy</span>
+                    </div>
+                </div>
+
+                <!-- Topic picker -->
+                <section class="section">
+                    <p class="section-label">Topic</p>
+                    <div class="topic-grid" id="topicGrid">
+                        {% for t in topics %}
+                        <button class="topic-btn {% if loop.first %}active{% endif %}" 
+                                onclick="selectTopic(this, '{{ t.id }}')">
+                            <span class="topic-icon">{{ t.icon }}</span>{{ t.label }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="topic_id" id="selectedTopicId" value="{{ topics[0].id }}">
+                </section>
+
+                <!-- Generate button -->
+                <button class="btn-generate" id="genBtn" 
+                        hx-post="/generate" 
+                        hx-target="#questionArea"
+                        hx-include="#selectedTopicId, #apiKeyInput, #modelSelect"
+                        hx-indicator="#genBtnLoader">
+                    <span id="genBtnText">Generate question</span>
+                    <svg id="genBtnArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                    <span id="genBtnLoader" class="spinner htmx-indicator"></span>
+                </button>
+
+                <!-- Question card area -->
+                <div id="questionArea"></div>
+            </div>
+
+            <!-- ── Review View ── -->
+            <div id="view-review" class="view">
+                <header class="view-header">
+                    <div>
+                        <h2 class="view-title">Review Mistakes</h2>
+                        <p class="view-sub">Questions you answered incorrectly</p>
+                    </div>
+                    <button class="btn-ghost" hx-post="/clear-mistakes" hx-target="#reviewList">Clear all</button>
+                </header>
+                <div id="reviewList"></div>
+            </div>
+
+            <!-- ── Stats View ── -->
+            <div id="view-stats" class="view">
+                <header class="view-header">
+                    <div>
+                        <h2 class="view-title">Statistics</h2>
+                        <p class="view-sub">Your performance by topic</p>
+                    </div>
+                    <button class="btn-ghost danger" hx-post="/reset-stats" hx-confirm="Reset all statistics?">Reset stats</button>
+                </header>
+                <div id="statsView"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Minimal JS for UI state toggling (no business logic)
+        function switchView(view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(b => {
+                b.classList.toggle('active', b.dataset.view === view);
+            });
+        }
+
+        function selectTopic(btn, id) {
+            document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('selectedTopicId').value = id;
+        }
+
+        // Handle HTMX loading indicators and cleanup
+        document.addEventListener('htmx:beforeRequest', function(evt) {
+            if (evt.detail.target.id === 'questionArea') {
+                document.getElementById('genBtn').disabled = true;
+                document.getElementById('genBtnText').textContent = 'Generating…';
+                document.getElementById('genBtnArrow').style.display = 'none';
+            }
+        });
+
+        document.addEventListener('htmx:afterOnLoad', function(evt) {
+            if (evt.detail.target.id === 'questionArea') {
+                document.getElementById('genBtn').disabled = false;
+                document.getElementById('genBtnText').textContent = 'Generate question';
+                document.getElementById('genBtnArrow').style.display = 'inline';
+            }
+        });
+    </script>
+</body>
+</html>

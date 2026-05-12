@@ -1,0 +1,30 @@
+<div class="explanation">
+    <span class="expl-label {% if is_right %}correct-label{% else %}wrong-label{% endif %}">
+        {% if is_right %}✓ Correct!{% else %}✗ Incorrect.{% endif %}
+    </span>
+    {{ explanation }}
+</div>
+
+<script>
+    // Highlight correct/wrong choices
+    (function() {
+        const choices = document.querySelectorAll('.choice');
+        choices[{{ correct_index }}].classList.add('correct');
+        {% if not is_right %}
+        choices[{{ picked_index }}].classList.add('wrong');
+        {% endif %}
+    })();
+</script>
+
+<!-- Update Stats Bar Out-of-Band -->
+<div id="statCorrect" hx-swap-oob="innerHTML">{{ stats.correct }}</div>
+<div id="statTotal" hx-swap-oob="innerHTML">{{ stats.total }}</div>
+<div id="statAccuracy" hx-swap-oob="innerHTML">
+    {% if stats.total > 0 %}{{ (stats.correct / stats.total * 100) | round | int }}%{% else %}—{% endif %}
+</div>
+<div id="streakCount" hx-swap-oob="innerHTML">{{ stats.streak }}</div>
+<div id="reviewBadge" hx-swap-oob="outerHTML">
+    <span class="badge" id="reviewBadge" {% if stats.total - stats.correct == 0 %}hidden{% endif %}>
+        {{ stats.total - stats.correct }}
+    </span>
+</div>

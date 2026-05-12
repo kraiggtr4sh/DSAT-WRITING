@@ -1,0 +1,29 @@
+{% if not mistakes %}
+<div class="review-empty">No mistakes yet — keep practicing!</div>
+{% else %}
+{% for m in mistakes %}
+<div class="review-item">
+    <div class="review-meta">
+        <span class="review-tag">{{ m.topic }}</span>
+        <span class="review-date">{{ m.date }}</span>
+    </div>
+    <div class="review-passage">
+        {{ m.passage | replace('[BLANK]', '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>') | safe }}
+    </div>
+    <div class="review-question">{{ m.question }}</div>
+    <div class="review-answers">
+        {% set choices = m.choices %}
+        {% for choice in choices %}
+        <div class="review-choice 
+            {% if loop.index0 == m.correct_index %}was-correct
+            {% elif loop.index0 == m.picked_index %}was-picked
+            {% else %}neutral{% endif %}">
+            <span style="font-weight:500">({{ ['A', 'B', 'C', 'D'][loop.index0] }})</span>
+            <span>{{ choice }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="review-expl">{{ m.explanation }}</div>
+</div>
+{% endfor %}
+{% endif %}

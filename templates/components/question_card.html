@@ -1,0 +1,48 @@
+<div class="question-card">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <div class="q-topic-tag" style="margin-bottom: 0;">{{ q.topic_label }}</div>
+        {% if q.is_fallback %}
+        <span style="font-size: 10px; color: var(--text-muted); background: var(--bg); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">
+            Cached Question
+        </span>
+        {% endif %}
+    </div>
+    <div class="q-passage">
+        {{ q.passage | replace('[BLANK]', '<span class="q-blank">_______</span>') | safe }}
+    </div>
+    <div class="q-question">{{ q.question }}</div>
+    <div class="choices">
+        {% for choice in q.choices %}
+        <div class="choice" 
+             hx-post="/answer" 
+             hx-vals='{"picked": {{ loop.index0 }}}' 
+             hx-target="#explanation-container" 
+             hx-swap="innerHTML"
+             role="button" 
+             tabindex="0">
+            <span class="choice-letter">({{ ['A', 'B', 'C', 'D'][loop.index0] }})</span>
+            <span>{{ choice }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div id="explanation-container"></div>
+</div>
+
+<button class="btn-next" id="nextBtn" style="display:none" 
+        hx-post="/generate" 
+        hx-target="#questionArea"
+        hx-include="#selectedTopicId, #apiKeyInput, #modelSelect">
+    Next question
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+</button>
+
+<script>
+    // Reveal next button when an answer is clicked
+    document.addEventListener('htmx:afterOnLoad', function(evt) {
+        if (evt.detail.target.id === 'explanation-container') {
+            document.getElementById('nextBtn').style.display = 'flex';
+            // Disable all choices
+            document.querySelectorAll('.choice').forEach(el => el.classList.add('disabled'));
+        }
+    });
+</script>

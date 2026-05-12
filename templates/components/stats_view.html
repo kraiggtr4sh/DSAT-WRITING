@@ -1,0 +1,43 @@
+<div class="stats-grid" style="margin-bottom:1.75rem">
+    <div class="stat-pill">
+        <span class="stat-val">{{ overall.correct }}</span>
+        <span class="stat-label">total correct</span>
+    </div>
+    <div class="stat-pill">
+        <span class="stat-val">{{ overall.total }}</span>
+        <span class="stat-label">total answered</span>
+    </div>
+    <div class="stat-pill">
+        <span class="stat-val">
+            {% if overall.total > 0 %}{{ (overall.correct / overall.total * 100) | round | int }}%{% else %}—{% endif %}
+        </span>
+        <span class="stat-label">overall accuracy</span>
+    </div>
+    <div class="stat-pill">
+        <span class="stat-val">{{ overall.best_streak }}</span>
+        <span class="stat-label">best streak</span>
+    </div>
+</div>
+
+{% if not topic_stats %}
+<div class="loading-placeholder">No topic data yet. Answer some questions to see your breakdown.</div>
+{% else %}
+<p class="section-label">By topic</p>
+<div class="stats-grid" style="margin-top:10px">
+    {% for ts in topic_stats %}
+    {% set pct = (ts.correct / ts.total * 100) | round | int %}
+    <div class="stats-card">
+        <div class="stats-card-topic">{{ topic_map[ts.topic_id] }}</div>
+        <div class="stats-bar-row">
+            <span class="stats-bar-label">Accuracy</span>
+            <div class="stats-bar-track">
+                <div class="stats-bar-fill {% if pct >= 70 %}correct-fill{% else %}wrong-fill{% endif %}" 
+                     style="width:{{ pct }}%"></div>
+            </div>
+            <span style="font-size:12px;font-weight:500;color:var(--text-primary);min-width:32px">{{ pct }}%</span>
+        </div>
+        <div class="stats-card-count"><strong>{{ ts.correct }}</strong> / {{ ts.total }} correct</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
