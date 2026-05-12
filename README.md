@@ -16,14 +16,11 @@ AI-powered DSAT Writing section drill tool. This version uses a **Python (FastAP
    ```bash
    pip install -r requirements.txt
    ```
-2. **Set API Key:**
-   - Create a `.env` file from the example: `cp .env.example .env` (or manually create it).
-   - Add your **Google AI Studio API Key** to `GEMINI_API_KEY`. Get one for free at [aistudio.google.com](https://aistudio.google.com/app/apikey).
-3. **Run the App:**
+2. **Run the App:**
    ```bash
    uvicorn main:app --reload
    ```
-4. **Open in Browser:**
+3. **Open in Browser:**
    Go to `http://127.0.0.1:8000`.
 
 ## File Structure
